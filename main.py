@@ -14,7 +14,7 @@ def fetch_text_from_library(id):
 
 
 def download_book(filename, book_text):
-    """TODO"""
+    """Записываем файл"""
     with open(filename, 'wb') as file:
         file.write(book_text)
 
