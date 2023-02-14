@@ -41,49 +41,43 @@ def fetch_text_url(response):
 def fetch_image_url_and_name(response):
     """Возвращает ссылку для скачивания изображения и имя файла"""
     soup = BeautifulSoup(response.text, 'lxml')
-    a_tags = []
-    if soup.find('table', class_='tabs').find('td', class_='ow_px_td').find('div', id='content'):
-        a_tags = soup.find('table', class_='tabs').find('td', class_='ow_px_td').find('div', id='content') \
-            .find('table', class_='d_book').find_all('a')
-    for tag in a_tags:
-        if tag.text == 'скачать txt' and soup.find('table', class_='tabs').find('div', class_='bookimage'):
-            image = soup.find('table', class_='tabs').find('div', class_='bookimage').find('img')
-            image_url = urljoin(response.url, image.get('src'))
-            image_name = image.get('src').split('/')[-1]
-            return image_url, image_name
+    image = soup.find('table', class_='tabs').find('div', class_='bookimage').find('img')
+    image_url = urljoin(response.url, image.get('src'))
+    image_name = image.get('src').split('/')[-1]
+    return image_url, image_name
 
 
 def fetch_title_and_author(response):
     """Возвращает название книги и автора"""
     soup = BeautifulSoup(response.text, 'lxml')
-    a_tags = []
-    if soup.find('table', class_='tabs').find('td', class_='ow_px_td').find('div', id='content'):
-        a_tags = soup.find('table', class_='tabs').find('td', class_='ow_px_td').find('div', id='content') \
-            .find('table', class_='d_book').find_all('a')
-    for tag in a_tags:
-        if tag.text == 'скачать txt' and soup.find('table', class_='tabs').find('div', class_='bookimage'):
-            title_tag = soup.find('table', class_='tabs').find('td', class_='ow_px_td')\
-                .find('div', id='content').find('h1').text
-            title = title_tag.split(' :: ')[0].strip()
-            author = title_tag.split(' :: ')[1].strip()
-            return title, author
+    title_tag = soup.find('table', class_='tabs').find('td', class_='ow_px_td').find('div', id='content')\
+        .find('h1').text
+    title = title_tag.split(' :: ')[0].strip()
+    author = title_tag.split(' :: ')[1].strip()
+    return title, author
 
 
 def fetch_genres(response):
     """Возвращает жанр книги"""
     soup = BeautifulSoup(response.text, 'lxml')
-    a_tags = []
-    if soup.find('table', class_='tabs').find('td', class_='ow_px_td').find('div', id='content'):
-        a_tags = soup.find('table', class_='tabs').find('td', class_='ow_px_td').find('div', id='content') \
-            .find('table', class_='d_book').find_all('a')
-    for tag in a_tags:
-        if tag.text == 'скачать txt' and soup.find('table', class_='tabs').find('div', class_='bookimage'):
-            genres_tags = soup.find('table', class_='tabs').find('td', class_='ow_px_td') \
-                .find('div', id='content').find('span', class_='d_book').find_all('a')
-            genres = []
-            for genre in genres_tags:
-                genres.append(genre.text)
-            return genres
+    genres_tags = soup.find('table', class_='tabs').find('td', class_='ow_px_td').find('div', id='content')\
+        .find('span', class_='d_book').find_all('a')
+    genres = []
+    for genre in genres_tags:
+        genres.append(genre.text)
+    return genres
+
+
+def fetch_comments(response):
+    """Возвращает список комментариев или пустой список"""
+    soup = BeautifulSoup(response.text, 'lxml')
+    comments_tags = soup.find('table', class_='tabs').find('td', class_='ow_px_td').find('div', id='content')\
+        .find_all('div', class_='texts')
+    comments = []
+    for comment in comments_tags:
+        comment_text = comment.find('span').text
+        comments.append(comment_text)
+    return comments
 
 
 def parse_books_pages(base_url, start_id = 1, end_id = 2):
@@ -100,10 +94,11 @@ def parse_books_pages(base_url, start_id = 1, end_id = 2):
             author = fetch_title_and_author(response)[1]
             genres = fetch_genres(response)
             book_name = sanitize_filename(f'{title}.txt')
+            comments = fetch_comments(response)
             books_info.append(
                 {
                     'book_id': book_id, 'text_url': text_url, 'image_url': image_url, 'image_name': image_name,
-                    'title': title, 'author': author, 'genres': genres, 'book_name': book_name
+                    'title': title, 'author': author, 'genres': genres, 'book_name': book_name, 'comments': comments
                 }
             )
     return books_info
@@ -120,13 +115,18 @@ def main():
 
     base_url = 'https://tululu.org'
     start_id = 1
-    end_id = 31
+    end_id = 30
     books = parse_books_pages(base_url, start_id=start_id, end_id=end_id)
     for number, book in enumerate(books, start=1):
-        print(f"Книга № {number}.\nНазвание: {book['title']}.\nАвтор: {book['author']}.\n")
-        download_text(book['text_url'], book['book_name'], folder='books/')
-        download_text(book['image_url'], book['image_name'], folder='images/')
+        print(f"Книга № {number}.\nНазвание: {book['title']}.\nАвтор: {book['author']}")
+        if book['comments']:
+            print("Комментарии:")
+            for comment in book['comments']:
+                print("   -", comment)
+        print()
 
 
 if __name__ == '__main__':
     main()
+
+
