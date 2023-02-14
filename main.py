@@ -69,7 +69,24 @@ def fetch_title_and_author(response):
             return title, author
 
 
-def parse_books_pages(base_url, start_id=1, end_id=2):
+def fetch_genres(response):
+    """Возвращает жанр книги"""
+    soup = BeautifulSoup(response.text, 'lxml')
+    a_tags = []
+    if soup.find('table', class_='tabs').find('td', class_='ow_px_td').find('div', id='content'):
+        a_tags = soup.find('table', class_='tabs').find('td', class_='ow_px_td').find('div', id='content') \
+            .find('table', class_='d_book').find_all('a')
+    for tag in a_tags:
+        if tag.text == 'скачать txt' and soup.find('table', class_='tabs').find('div', class_='bookimage'):
+            genres_tags = soup.find('table', class_='tabs').find('td', class_='ow_px_td') \
+                .find('div', id='content').find('span', class_='d_book').find_all('a')
+            genres = []
+            for genre in genres_tags:
+                genres.append(genre.text)
+            return genres
+
+
+def parse_books_pages(base_url, start_id = 1, end_id = 2):
     """Возвращает информацию о книгах в словаре"""
     books_info = []
     for book_id in range(start_id, end_id):
@@ -81,11 +98,12 @@ def parse_books_pages(base_url, start_id=1, end_id=2):
             image_name = fetch_image_url_and_name(response)[1]
             title = fetch_title_and_author(response)[0]
             author = fetch_title_and_author(response)[1]
+            genres = fetch_genres(response)
             book_name = sanitize_filename(f'{title}.txt')
             books_info.append(
                 {
                     'book_id': book_id, 'text_url': text_url, 'image_url': image_url, 'image_name': image_name,
-                    'title': title, 'author': author, 'book_name': book_name
+                    'title': title, 'author': author, 'genres': genres, 'book_name': book_name
                 }
             )
     return books_info
