@@ -1,3 +1,4 @@
+import argparse
 import os
 from urllib.parse import urljoin
 
@@ -7,7 +8,7 @@ from pathvalidate import sanitize_filename
 
 
 def check_for_redirect(response):
-    """Возвращает response если ответ <30Х> (переадресация)"""
+    """Возвращает response, если ответ <30Х> (переадресация)"""
     if response.history:
         raise requests.exceptions.HTTPError(response.history[0])
     return response
@@ -105,6 +106,8 @@ def parse_books_pages(base_url, start_id = 1, end_id = 2):
 
 
 def main():
+    base_url = 'https://tululu.org'
+
     books_path = './books/'
     if not os.path.exists(books_path):
         os.makedirs(books_path)
@@ -113,16 +116,21 @@ def main():
     if not os.path.exists(image_path):
         os.makedirs(image_path)
 
-    base_url = 'https://tululu.org'
-    start_id = 1
-    end_id = 30
+    parser = argparse.ArgumentParser(description='Скачивание книг из библиотеки  tululu.org')
+    parser.add_argument('-s', '--start', type=int, default=1, help='Ввести номер первой книги')
+    parser.add_argument('-e', '--end', type=int, default=1, help='Ввести номер последней книги')
+    args = parser.parse_args()
+    start_id = args.start
+    end_id = args.end + 1
+
     books = parse_books_pages(base_url, start_id=start_id, end_id=end_id)
+    print(f'  Всего получено {len(books)} книг:\n')
     for number, book in enumerate(books, start=1):
-        print(f"Книга № {number}.\nНазвание: {book['title']}.\nАвтор: {book['author']}")
+        print(f"   Книга № {number}.\n   Название: {book['title']}.\n   Автор: {book['author']}")
         if book['comments']:
-            print("Комментарии:")
+            print('   Комментарии:')
             for comment in book['comments']:
-                print("   -", comment)
+                print("    -", comment)
         print()
 
 
