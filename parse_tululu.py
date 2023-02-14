@@ -117,11 +117,11 @@ def main():
         os.makedirs(image_path)
 
     parser = argparse.ArgumentParser(description='Скачивание книг из библиотеки  tululu.org')
-    parser.add_argument('-s', '--start', type=int, default=1, help='Ввести номер первой книги')
-    parser.add_argument('-e', '--end', type=int, default=1, help='Ввести номер последней книги')
+    parser.add_argument('start_id', nargs='?', type=int, default=1, help='Ввести номер первой книги')
+    parser.add_argument('end_id', nargs='?', type=int, default=1, help='Ввести номер последней книги')
     args = parser.parse_args()
-    start_id = args.start
-    end_id = args.end + 1
+    start_id = args.start_id
+    end_id = args.end_id + 1
 
     books = parse_books_pages(base_url, start_id=start_id, end_id=end_id)
     print(f'  Всего получено {len(books)} книг:\n')
