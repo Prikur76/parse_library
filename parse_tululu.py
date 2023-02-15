@@ -16,15 +16,12 @@ def check_for_redirect(response):
 
 def download_content(url, file_name, folder='books/'):
     """Функция для скачивания файлов в заданную папку"""
-    try:
-        response = requests.get(url=url)
-        response.raise_for_status()
-        if check_for_redirect(response):
-            filepath = os.path.join(folder, file_name)
-            with open(filepath, 'wb') as file:
-                file.write(content)
-    except requests.exceptions.HTTPError as err:
-        print('Error: ', err)
+    response = requests.get(url=url)
+    response.raise_for_status()
+    if check_for_redirect(response):
+        filepath = os.path.join(folder, file_name)
+        with open(filepath, 'wb') as file:
+            file.write(content)
 
 
 def fetch_text_url(response):
@@ -63,9 +60,7 @@ def fetch_genres(response):
     soup = BeautifulSoup(response.text, 'lxml')
     genres_tags = soup.find('table', class_='tabs').find('td', class_='ow_px_td').find('div', id='content')\
         .find('span', class_='d_book').find_all('a')
-    genres = []
-    for genre in genres_tags:
-        genres.append(genre.text)
+    genres = [genre.text for genre in genres_tags]
     return genres
 
 
@@ -74,10 +69,7 @@ def fetch_comments(response):
     soup = BeautifulSoup(response.text, 'lxml')
     comments_tags = soup.find('table', class_='tabs').find('td', class_='ow_px_td').find('div', id='content')\
         .find_all('div', class_='texts')
-    comments = []
-    for comment in comments_tags:
-        comment_text = comment.find('span').text
-        comments.append(comment_text)
+    comments = [comment.find('span').text for comment in comments_tags]
     return comments
 
 
@@ -88,10 +80,12 @@ def parse_book_page(base_url, book_id):
     response.raise_for_status()
     text_url = fetch_text_url(response)
     if text_url:
-        image_url = fetch_image_url_and_name(response)[0]
-        image_name = fetch_image_url_and_name(response)[1]
-        title = fetch_title_and_author(response)[0]
-        author = fetch_title_and_author(response)[1]
+        image_url_and_name = fetch_image_url_and_name(response)
+        title_and_author = fetch_title_and_author(response)
+
+        image_url, image_name = image_url_and_name[0], image_url_and_name[1]
+        title, author = title_and_author[0], title_and_author[1]
+
         genres = fetch_genres(response)
         book_name = sanitize_filename(f'{title}.txt')
         comments = fetch_comments(response)
@@ -99,7 +93,6 @@ def parse_book_page(base_url, book_id):
             'book_id': book_id, 'text_url': text_url, 'image_url': image_url, 'image_name': image_name,
             'title': title, 'author': author, 'genres': genres, 'book_name': book_name, 'comments': comments
         }
-
     return book_info
 
 
@@ -123,13 +116,16 @@ def main():
 
     books = []
     for book_id in range(start_id, end_id):
-        book = parse_book_page(base_url, book_id)
-        books.append(
-            {
-                'book_id': book_id, 'text_url': text_url, 'image_url': image_url, 'image_name': image_name,
-                'title': title, 'author': author, 'genres': genres, 'book_name': book_name, 'comments': comments
-            }
-        )
+        try:
+            book = parse_book_page(base_url, book_id)
+            books.append(
+                {
+                    'book_id': book_id, 'text_url': text_url, 'image_url': image_url, 'image_name': image_name,
+                    'title': title, 'author': author, 'genres': genres, 'book_name': book_name, 'comments': comments
+                }
+            )
+        except requests.exceptions.HTTPError as err:
+            print('Error: ', err)
 
     print(f'  Всего получено {len(books)} книг:\n')
     for number, book in enumerate(books, start=1):
