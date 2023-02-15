@@ -29,7 +29,7 @@ def get_soup(response):
     return soup
 
 
-def fetch_text_url(soup):
+def fetch_text_url(base_url, soup):
     """Возвращает словарь тэгов 'a' из ответа сайта"""
     a_tags = []
     if soup.find('table', class_='tabs').find('td', class_='ow_px_td').find('div', id='content'):
@@ -37,13 +37,13 @@ def fetch_text_url(soup):
             .find('table', class_='d_book').find_all('a')
     for tag in a_tags:
         if tag.text == 'скачать txt' and soup.find('table', class_='tabs').find('div', class_='bookimage'):
-            return urljoin(response.url, tag.get('href'))
+            return urljoin(base_url, tag.get('href'))
 
 
-def fetch_image_url_and_name(soup):
+def fetch_image_url_and_name(base_url, soup):
     """Возвращает ссылку для скачивания изображения и имя файла"""
     image = soup.find('table', class_='tabs').find('div', class_='bookimage').find('img')
-    image_url = urljoin(response.url, image.get('src'))
+    image_url = urljoin(base_url, image.get('src'))
     image_name = image.get('src').split('/')[-1]
     return image_url, image_name
 
@@ -79,9 +79,9 @@ def parse_book_page(base_url, book_id):
     response = requests.get(url=book_url)
     response.raise_for_status()
     soup = get_soup(response)
-    text_url = fetch_text_url(soup)
+    text_url = fetch_text_url(base_url, soup)
     if text_url:
-        image_url_and_name = fetch_image_url_and_name(soup)
+        image_url_and_name = fetch_image_url_and_name(base_url, soup)
         title_and_author = fetch_title_and_author(soup)
 
         image_url, image_name = image_url_and_name[0], image_url_and_name[1]
@@ -95,7 +95,7 @@ def parse_book_page(base_url, book_id):
             'book_id': book_id, 'text_url': text_url, 'image_url': image_url, 'image_name': image_name,
             'title': title, 'author': author, 'genres': genres, 'book_name': book_name, 'comments': comments
         }
-    return book
+        return book
 
 
 def main():
@@ -115,19 +115,14 @@ def main():
     args = parser.parse_args()
     start_id = args.start_id
     end_id = args.end_id + 1
-
-    books = []
-    for book_id in range(start_id, end_id):
-        try:
+    try:
+        books = []
+        for book_id in range(start_id, end_id):
             book = parse_book_page(base_url, book_id)
-            books.append(
-                {
-                    'book_id': book_id, 'text_url': text_url, 'image_url': image_url, 'image_name': image_name,
-                    'title': title, 'author': author, 'genres': genres, 'book_name': book_name, 'comments': comments
-                }
-            )
-        except requests.exceptions.HTTPError as err:
-            print('Error: ', err)
+            if book:
+                books.append(book)
+    except requests.exceptions.HTTPError as err:
+        print('Error: ', err)
 
     print(f'  Всего получено {len(books)} книг:\n')
     for number, book in enumerate(books, start=1):
