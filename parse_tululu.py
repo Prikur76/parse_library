@@ -16,12 +16,11 @@ def check_for_redirect(response):
 
 def download_content(url, file_name, folder='books/'):
     """Функция для скачивания файлов в заданную папку"""
-    response = requests.get(url=url)
+    response = check_for_redirect(requests.get(url=url))
     response.raise_for_status()
-    if check_for_redirect(response):
-        filepath = os.path.join(folder, file_name)
-        with open(filepath, 'wb') as file:
-            file.write(content)
+    filepath = os.path.join(folder, file_name)
+    with open(filepath, 'wb') as file:
+        file.write(response.content)
 
 
 def fetch_text_url(response):
@@ -89,11 +88,12 @@ def parse_book_page(base_url, book_id):
         genres = fetch_genres(response)
         book_name = sanitize_filename(f'{title}.txt')
         comments = fetch_comments(response)
-        book_info = {
+
+        book = {
             'book_id': book_id, 'text_url': text_url, 'image_url': image_url, 'image_name': image_name,
             'title': title, 'author': author, 'genres': genres, 'book_name': book_name, 'comments': comments
         }
-    return book_info
+    return book
 
 
 def main():
