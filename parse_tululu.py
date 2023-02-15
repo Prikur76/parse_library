@@ -23,9 +23,14 @@ def download_content(url, file_name, folder='books/'):
         file.write(response.content)
 
 
-def fetch_text_url(response):
-    """Возвращает словарь тэгов 'a' из ответа сайта"""
+def get_soup(response):
+    """Возвращает обработанный response в виде объекта soup"""
     soup = BeautifulSoup(response.text, 'lxml')
+    return soup
+
+
+def fetch_text_url(soup):
+    """Возвращает словарь тэгов 'a' из ответа сайта"""
     a_tags = []
     if soup.find('table', class_='tabs').find('td', class_='ow_px_td').find('div', id='content'):
         a_tags = soup.find('table', class_='tabs').find('td', class_='ow_px_td').find('div', id='content') \
@@ -35,18 +40,16 @@ def fetch_text_url(response):
             return urljoin(response.url, tag.get('href'))
 
 
-def fetch_image_url_and_name(response):
+def fetch_image_url_and_name(soup):
     """Возвращает ссылку для скачивания изображения и имя файла"""
-    soup = BeautifulSoup(response.text, 'lxml')
     image = soup.find('table', class_='tabs').find('div', class_='bookimage').find('img')
     image_url = urljoin(response.url, image.get('src'))
     image_name = image.get('src').split('/')[-1]
     return image_url, image_name
 
 
-def fetch_title_and_author(response):
+def fetch_title_and_author(soup):
     """Возвращает название книги и автора"""
-    soup = BeautifulSoup(response.text, 'lxml')
     title_tag = soup.find('table', class_='tabs').find('td', class_='ow_px_td').find('div', id='content')\
         .find('h1').text
     title = title_tag.split(' :: ')[0].strip()
@@ -54,18 +57,16 @@ def fetch_title_and_author(response):
     return title, author
 
 
-def fetch_genres(response):
+def fetch_genres(soup):
     """Возвращает жанр книги"""
-    soup = BeautifulSoup(response.text, 'lxml')
     genres_tags = soup.find('table', class_='tabs').find('td', class_='ow_px_td').find('div', id='content')\
         .find('span', class_='d_book').find_all('a')
     genres = [genre.text for genre in genres_tags]
     return genres
 
 
-def fetch_comments(response):
+def fetch_comments(soup):
     """Возвращает список комментариев или пустой список"""
-    soup = BeautifulSoup(response.text, 'lxml')
     comments_tags = soup.find('table', class_='tabs').find('td', class_='ow_px_td').find('div', id='content')\
         .find_all('div', class_='texts')
     comments = [comment.find('span').text for comment in comments_tags]
@@ -77,17 +78,18 @@ def parse_book_page(base_url, book_id):
     book_url = urljoin(base_url, f'b{book_id}')
     response = requests.get(url=book_url)
     response.raise_for_status()
-    text_url = fetch_text_url(response)
+    soup = get_soup(response)
+    text_url = fetch_text_url(soup)
     if text_url:
-        image_url_and_name = fetch_image_url_and_name(response)
-        title_and_author = fetch_title_and_author(response)
+        image_url_and_name = fetch_image_url_and_name(soup)
+        title_and_author = fetch_title_and_author(soup)
 
         image_url, image_name = image_url_and_name[0], image_url_and_name[1]
         title, author = title_and_author[0], title_and_author[1]
 
-        genres = fetch_genres(response)
+        genres = fetch_genres(soup)
         book_name = sanitize_filename(f'{title}.txt')
-        comments = fetch_comments(response)
+        comments = fetch_comments(soup)
 
         book = {
             'book_id': book_id, 'text_url': text_url, 'image_url': image_url, 'image_name': image_name,
