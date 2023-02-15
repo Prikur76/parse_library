@@ -81,28 +81,26 @@ def fetch_comments(response):
     return comments
 
 
-def parse_books_pages(base_url, start_id = 1, end_id = 2):
-    """Возвращает информацию о книгах в словаре"""
-    books_info = []
-    for book_id in range(start_id, end_id):
-        book_url = urljoin(base_url, f'b{book_id}')
-        response = requests.get(url=book_url)
-        text_url = fetch_text_url(response)
-        if text_url:
-            image_url = fetch_image_url_and_name(response)[0]
-            image_name = fetch_image_url_and_name(response)[1]
-            title = fetch_title_and_author(response)[0]
-            author = fetch_title_and_author(response)[1]
-            genres = fetch_genres(response)
-            book_name = sanitize_filename(f'{title}.txt')
-            comments = fetch_comments(response)
-            books_info.append(
-                {
-                    'book_id': book_id, 'text_url': text_url, 'image_url': image_url, 'image_name': image_name,
-                    'title': title, 'author': author, 'genres': genres, 'book_name': book_name, 'comments': comments
-                }
-            )
-    return books_info
+def parse_book_page(base_url, book_id):
+    """Возвращает информацию о книге в виде словаря"""
+    book_url = urljoin(base_url, f'b{book_id}')
+    response = requests.get(url=book_url)
+    response.raise_for_status()
+    text_url = fetch_text_url(response)
+    if text_url:
+        image_url = fetch_image_url_and_name(response)[0]
+        image_name = fetch_image_url_and_name(response)[1]
+        title = fetch_title_and_author(response)[0]
+        author = fetch_title_and_author(response)[1]
+        genres = fetch_genres(response)
+        book_name = sanitize_filename(f'{title}.txt')
+        comments = fetch_comments(response)
+        book_info = {
+            'book_id': book_id, 'text_url': text_url, 'image_url': image_url, 'image_name': image_name,
+            'title': title, 'author': author, 'genres': genres, 'book_name': book_name, 'comments': comments
+        }
+
+    return book_info
 
 
 def main():
@@ -123,7 +121,16 @@ def main():
     start_id = args.start_id
     end_id = args.end_id + 1
 
-    books = parse_books_pages(base_url, start_id=start_id, end_id=end_id)
+    books = []
+    for book_id in range(start_id, end_id):
+        book = parse_book_page(base_url, book_id)
+        books.append(
+            {
+                'book_id': book_id, 'text_url': text_url, 'image_url': image_url, 'image_name': image_name,
+                'title': title, 'author': author, 'genres': genres, 'book_name': book_name, 'comments': comments
+            }
+        )
+
     print(f'  Всего получено {len(books)} книг:\n')
     for number, book in enumerate(books, start=1):
         print(f"   Книга № {number}.\n   Название: {book['title']}.\n   Автор: {book['author']}")
