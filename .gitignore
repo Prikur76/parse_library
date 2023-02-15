@@ -162,3 +162,4 @@ cython_debug/
 
 books/
 images/
+bs4_tutorial.py
