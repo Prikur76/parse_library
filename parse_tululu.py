@@ -32,17 +32,16 @@ def get_soup(response):
 def fetch_text_url(base_url, soup):
     """Возвращает словарь тэгов 'a' из ответа сайта"""
     a_tags = []
-    if soup.find('table', class_='tabs').find('td', class_='ow_px_td').find('div', id='content'):
-        a_tags = soup.find('table', class_='tabs').find('td', class_='ow_px_td').find('div', id='content') \
-            .find('table', class_='d_book').find_all('a')
+    if soup.find('div', id='content'):
+        a_tags = soup.find('table', class_='d_book').find_all('a')
     for tag in a_tags:
-        if tag.text == 'скачать txt' and soup.find('table', class_='tabs').find('div', class_='bookimage'):
+        if tag.text == 'скачать txt' and soup.find('div', class_='bookimage'):
             return urljoin(base_url, tag.get('href'))
 
 
 def fetch_image_url_and_name(base_url, soup):
     """Возвращает ссылку для скачивания изображения и имя файла"""
-    image = soup.find('table', class_='tabs').find('div', class_='bookimage').find('img')
+    image = soup.find('div', class_='bookimage').find('img')
     image_url = urljoin(base_url, image.get('src'))
     image_name = image.get('src').split('/')[-1]
     return image_url, image_name
@@ -50,8 +49,7 @@ def fetch_image_url_and_name(base_url, soup):
 
 def fetch_title_and_author(soup):
     """Возвращает название книги и автора"""
-    title_tag = soup.find('table', class_='tabs').find('td', class_='ow_px_td').find('div', id='content')\
-        .find('h1').text
+    title_tag = soup.find('h1').text
     title = title_tag.split(' :: ')[0].strip()
     author = title_tag.split(' :: ')[1].strip()
     return title, author
@@ -59,16 +57,14 @@ def fetch_title_and_author(soup):
 
 def fetch_genres(soup):
     """Возвращает жанр книги"""
-    genres_tags = soup.find('table', class_='tabs').find('td', class_='ow_px_td').find('div', id='content')\
-        .find('span', class_='d_book').find_all('a')
+    genres_tags = soup.find('span', class_='d_book').find_all('a')
     genres = [genre.text for genre in genres_tags]
     return genres
 
 
 def fetch_comments(soup):
     """Возвращает список комментариев или пустой список"""
-    comments_tags = soup.find('table', class_='tabs').find('td', class_='ow_px_td').find('div', id='content')\
-        .find_all('div', class_='texts')
+    comments_tags = soup.find_all('div', class_='texts')
     comments = [comment.find('span').text for comment in comments_tags]
     return comments
 
