@@ -1,5 +1,7 @@
 import argparse
+import logging
 import os
+import time
 from urllib.parse import urljoin
 
 import requests
@@ -7,20 +9,17 @@ from bs4 import BeautifulSoup
 from pathvalidate import sanitize_filename
 
 
-def check_for_redirect(response):
-    """Возвращает response, если ответ <30Х> (переадресация)"""
-    if response.history:
-        raise requests.exceptions.HTTPError(response.history[0])
-    return response
+logger = logging.getLogger(__name__)
 
 
 def download_content(url, file_name, folder='books/'):
     """Функция для скачивания файлов в заданную папку"""
-    response = check_for_redirect(requests.get(url=url))
+    response = requests.get(url=url)
     response.raise_for_status()
-    filepath = os.path.join(folder, file_name)
-    with open(filepath, 'wb') as file:
-        file.write(response.content)
+    if not response.history:
+        filepath = os.path.join(folder, file_name)
+        with open(filepath, 'wb') as file:
+            file.write(response.content)
 
 
 def get_soup(response):
@@ -74,6 +73,14 @@ def parse_book_page(base_url, book_id):
     book_url = urljoin(base_url, f'b{book_id}')
     response = requests.get(url=book_url)
     response.raise_for_status()
+
+    if not response.history:
+        raise requests.exceptions.HTTPError(response.history[0])
+
+    decoded_response = response.text
+    if 'error' in decoded_response:
+        raise requests.exceptions.HTTPError(decoded_response['error'])
+
     soup = get_soup(response)
     text_url = fetch_text_url(base_url, soup)
     if text_url:
@@ -88,13 +95,32 @@ def parse_book_page(base_url, book_id):
         comments = fetch_comments(soup)
 
         book = {
-            'book_id': book_id, 'text_url': text_url, 'image_url': image_url, 'image_name': image_name,
-            'title': title, 'author': author, 'genres': genres, 'book_name': book_name, 'comments': comments
+            'book_id': book_id, 'text_url': text_url, 'image_url': image_url,
+            'image_name': image_name, 'title': title, 'author': author,
+            'genres': genres, 'book_name': book_name, 'comments': comments
         }
         return book
 
 
+def publish_books_to_console(books):
+    """Выводит на экран список книг"""
+    print(f'\n  Всего получено {len(books)} книг.\n')
+    for number, book in enumerate(books, start=1):
+        print(f"   Книга № {number}.\n   Название: {book['title']}.\n   "
+              f"Автор: {book['author']}")
+        if book['comments']:
+            print('   Комментарии:')
+            for comment in book['comments']:
+                print("    -", comment)
+        print()
+
+
 def main():
+    logging.basicConfig(
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        level=logging.INFO
+    )
+
     base_url = 'https://tululu.org'
 
     books_path = './books/'
@@ -105,29 +131,36 @@ def main():
     if not os.path.exists(image_path):
         os.makedirs(image_path)
 
-    parser = argparse.ArgumentParser(description='Скачивание книг из библиотеки  tululu.org')
-    parser.add_argument('start_id', nargs='?', type=int, default=1, help='Ввести номер первой книги')
-    parser.add_argument('end_id', nargs='?', type=int, default=1, help='Ввести номер последней книги')
+    parser = argparse.ArgumentParser(
+        description='Скачивание книг из библиотеки  tululu.org'
+    )
+    parser.add_argument('start_id', nargs='?', type=int, default=1,
+                        help='Ввести номер первой книги')
+    parser.add_argument('end_id', nargs='?', type=int, default=1,
+                        help='Ввести номер последней книги')
     args = parser.parse_args()
     start_id = args.start_id
     end_id = args.end_id + 1
-    try:
-        books = []
-        for book_id in range(start_id, end_id):
-            book = parse_book_page(base_url, book_id)
-            if book:
-                books.append(book)
-    except requests.exceptions.HTTPError as err:
-        print('Error: ', err)
 
-    print(f'  Всего получено {len(books)} книг:\n')
-    for number, book in enumerate(books, start=1):
-        print(f"   Книга № {number}.\n   Название: {book['title']}.\n   Автор: {book['author']}")
-        if book['comments']:
-            print('   Комментарии:')
-            for comment in book['comments']:
-                print("    -", comment)
-        print()
+    books = []
+    while start_id < end_id:
+        try:
+            book = parse_book_page(base_url, start_id)
+            if book:
+                download_content(book['text_url'], book['book_name'],
+                                 folder='books/')
+                download_content(book['image_url'], book['image_name'],
+                                 folder='images/')
+                books.append(book)
+            start_id += 1
+
+        except requests.exceptions.ConnectionError:
+            logger.error("Lost HTTP connection")
+            time.sleep(10)
+        except requests.exceptions.HTTPError as http_err:
+            logger.error(f"HTTPError: {http_err}")
+
+    publish_books_to_console(books)
 
 
 if __name__ == '__main__':
