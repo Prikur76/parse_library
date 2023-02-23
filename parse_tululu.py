@@ -81,16 +81,11 @@ def parse_book_page(response, book_id):
     soup = BeautifulSoup(response.text, 'lxml')
     text_url = fetch_text_url(response.url, soup)
     if text_url:
-        image_url_and_name = fetch_image_url_and_name(response.url, soup)
-        title_and_author = fetch_title_and_author(soup)
-
-        image_url, image_name = image_url_and_name
-        title, author = title_and_author
-
+        image_url, image_name = fetch_image_url_and_name(response.url, soup)
+        title, author = fetch_title_and_author(soup)
         genres = fetch_genres(soup)
         book_name = sanitize_filename(f'{title}.txt')
         comments = fetch_comments(soup)
-
         book = {
             'book_id': book_id, 'text_url': text_url, 'image_url': image_url,
             'image_name': image_name, 'title': title, 'author': author,
@@ -143,10 +138,10 @@ def main():
             response = get_response(base_url, book_id)
             book = parse_book_page(response, book_id)
             if book:
-                download_content(book['text_url'], book['book_name'],
-                                 folder='books/')
-                download_content(book['image_url'], book['image_name'],
-                                 folder='images/')
+                # download_content(book['text_url'], book['book_name'],
+                #                  folder='books/')
+                # download_content(book['image_url'], book['image_name'],
+                #                  folder='images/')
                 books.append(book)
 
         except AttributeError:
