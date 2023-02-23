@@ -67,9 +67,8 @@ def fetch_comments(soup):
     comments = [comment.find('span').text for comment in comments_tags]
     return comments
 
-
-def parse_book_page(base_url, book_id):
-    """Возвращает информацию о книге в виде словаря"""
+def get_response(base_url, book_id):
+    """ """
     book_url = urljoin(base_url, f'b{book_id}')
     response = requests.get(url=book_url)
     response.raise_for_status()
@@ -81,6 +80,11 @@ def parse_book_page(base_url, book_id):
     if 'error' in decoded_response:
         raise requests.exceptions.HTTPError(decoded_response['error'])
 
+    return response
+
+
+def parse_book_page(response):
+    """Возвращает информацию о книге в виде словаря"""
     soup = get_soup(response)
     text_url = fetch_text_url(base_url, soup)
     if text_url:
