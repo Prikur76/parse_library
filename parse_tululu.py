@@ -22,12 +22,6 @@ def download_content(url, file_name, folder='books/'):
             file.write(response.content)
 
 
-def get_soup(response):
-    """Возвращает обработанный response в виде объекта soup"""
-    soup = BeautifulSoup(response.text, 'lxml')
-    return soup
-
-
 def fetch_text_url(base_url, soup):
     """Возвращает словарь тэгов 'a' из ответа сайта"""
     a_tags = []
@@ -67,6 +61,7 @@ def fetch_comments(soup):
     comments = [comment.find('span').text for comment in comments_tags]
     return comments
 
+
 def get_response(base_url, book_id):
     """Возвращает ответ на запрос либо возбуждает исключение"""
     book_url = urljoin(base_url, f'b{book_id}')
@@ -85,7 +80,7 @@ def get_response(base_url, book_id):
 
 def parse_book_page(response):
     """Возвращает информацию о книге в виде словаря"""
-    soup = get_soup(response)
+    soup = BeautifulSoup(response.text, 'lxml')
     text_url = fetch_text_url(base_url, soup)
     if text_url:
         image_url_and_name = fetch_image_url_and_name(base_url, soup)
