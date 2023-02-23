@@ -124,12 +124,10 @@ def main():
     base_url = 'https://tululu.org'
 
     books_path = './books/'
-    if not os.path.exists(books_path):
-        os.makedirs(books_path)
+    os.makedirs(books_path, exist_ok=False)
 
     image_path = './images/'
-    if not os.path.exists(image_path):
-        os.makedirs(image_path)
+    os.makedirs(image_path, exist_ok=False)
 
     parser = argparse.ArgumentParser(
         description='Скачивание книг из библиотеки  tululu.org'
