@@ -68,13 +68,13 @@ def fetch_comments(soup):
     return comments
 
 def get_response(base_url, book_id):
-    """ """
+    """Возвращает ответ на запрос либо возбуждает исключение"""
     book_url = urljoin(base_url, f'b{book_id}')
     response = requests.get(url=book_url)
     response.raise_for_status()
 
-    if not response.history:
-        raise requests.exceptions.HTTPError(response.history[0])
+    if response.history:
+        raise requests.exceptions.HTTPError(response.history.items())
 
     decoded_response = response.text
     if 'error' in decoded_response:
@@ -145,16 +145,18 @@ def main():
     end_id = args.end_id + 1
 
     books = []
-    while start_id < end_id:
+    # while start_id < end_id:
+    for book in enumerate(books):
         try:
-            book = parse_book_page(base_url, start_id)
+            page = get_response(base_url, start_id)
+            book = parse_book_page(page)
             if book:
-                download_content(book['text_url'], book['book_name'],
-                                 folder='books/')
-                download_content(book['image_url'], book['image_name'],
-                                 folder='images/')
+                # download_content(book['text_url'], book['book_name'],
+                #                  folder='books/')
+                # download_content(book['image_url'], book['image_name'],
+                #                  folder='images/')
                 books.append(book)
-            start_id += 1
+            # start_id += 1
 
         except requests.exceptions.ConnectionError:
             logger.error("Lost HTTP connection")
