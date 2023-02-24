@@ -12,17 +12,21 @@ from pathvalidate import sanitize_filename
 logger = logging.getLogger(__name__)
 
 
-def download_content(content_url, file_name, folder='books/'):
-    """Функция для скачивания файлов в заданную папку"""
-    response = requests.get(url=content_url)
+def get_response(base_url, book_id):
+    """Возвращает ответ на запрос либо возбуждает исключение"""
+    book_url = urljoin(base_url, f'b{book_id}/')
+    response = requests.get(url=book_url)
     response.raise_for_status()
-    filepath = os.path.join(folder, file_name)
-    with open(filepath, 'wb') as file:
-        file.write(response.content)
+    if response.history:
+        raise requests.exceptions.HTTPError(response.history)
+    return response
 
 
 def fetch_text_url(base_url, soup):
-    """Возвращает словарь тэгов 'a' из ответа сайта"""
+    """
+    Возвращает тег для скачивания текста книги из тега '<a></a>'
+    (при наличии) или ответ None
+    """
     tag_href = [
         tag.get('href')
         for tag in soup.find('table', class_='d_book').find_all('a')
@@ -30,6 +34,7 @@ def fetch_text_url(base_url, soup):
     ]
     if tag_href:
         return urljoin(base_url, tag_href[0])
+    return
 
 
 def fetch_image_url_and_name(book_url, soup):
@@ -48,7 +53,7 @@ def fetch_title_and_author(soup):
 
 
 def fetch_genres(soup):
-    """Возвращает жанр книги"""
+    """Возвращает жанр книги или пустой список"""
     genres_tags = soup.find('span', class_='d_book').find_all('a')
     genres = [genre.text for genre in genres_tags]
     return genres
@@ -61,23 +66,12 @@ def fetch_comments(soup):
     return comments
 
 
-def get_response(base_url, book_id):
-    """Возвращает ответ на запрос либо возбуждает исключение"""
-    book_url = urljoin(base_url, f'b{book_id}')
-    response = requests.get(url=book_url)
-    response.raise_for_status()
-
-    if not response.history:
-        raise requests.exceptions.HTTPError(response.history)
-
-    decoded_response = response.text
-    if 'error' in decoded_response:
-        raise requests.exceptions.HTTPError(decoded_response['error'])
-    return response
-
-
 def parse_book_page(response, book_id):
-    """Возвращает информацию о книге в виде словаря"""
+    """
+    Возвращает информацию о книге в виде словаря в случае,
+    если есть ссылка для скачивания текст книги (text_url),
+    либо ответ None
+    """
     soup = BeautifulSoup(response.text, 'lxml')
     text_url = fetch_text_url(response.url, soup)
     if text_url:
@@ -92,6 +86,17 @@ def parse_book_page(response, book_id):
             'genres': genres, 'book_name': book_name, 'comments': comments
         }
         return book
+    return
+
+
+def download_content(content_url, file_name, folder='books/'):
+    """Функция для скачивания файлов в заданную папку"""
+    response = requests.get(url=content_url)
+    response.raise_for_status()
+    filepath = os.path.join(folder, file_name)
+    with open(filepath, 'wb') as file:
+        file.write(response.content)
+    return
 
 
 def publish_books_to_console(books):
@@ -105,6 +110,7 @@ def publish_books_to_console(books):
             for comment in book['comments']:
                 print("    -", comment)
         print()
+    return
 
 
 def main():
@@ -114,11 +120,9 @@ def main():
     )
 
     base_url = 'https://tululu.org'
-
     books_path = './books/'
-    os.makedirs(books_path, exist_ok=True)
-
     image_path = './images/'
+    os.makedirs(books_path, exist_ok=True)
     os.makedirs(image_path, exist_ok=True)
 
     parser = argparse.ArgumentParser(
@@ -138,19 +142,21 @@ def main():
             response = get_response(base_url, book_id)
             book = parse_book_page(response, book_id)
             if book:
-                # download_content(book['text_url'], book['book_name'],
-                #                  folder='books/')
-                # download_content(book['image_url'], book['image_name'],
-                #                  folder='images/')
                 books.append(book)
 
-        except AttributeError:
+                download_content(book['text_url'], book['book_name'],
+                                 folder='books/')
+                download_content(book['image_url'], book['image_name'],
+                                 folder='images/')
+
+        except AttributeError as err:
+            logger.error(f"AttributeError: {err}")
             pass
-        except requests.exceptions.ConnectionError:
-            logger.error("Lost HTTP connection")
+        except requests.exceptions.ConnectionError as connection_err:
+            logger.error(f"Lost HTTP connection: {connection_err}")
             time.sleep(10)
         except requests.exceptions.HTTPError as http_err:
-            logger.error(f"HTTPError: {http_err}")
+            logger.error(f"BOOK ID: {book_id} -> HTTPError: {http_err}")
 
     publish_books_to_console(books)
 
