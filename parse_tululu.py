@@ -1,13 +1,13 @@
 import argparse
 import logging
 import os
+import textwrap as tw
 import time
 from urllib.parse import urljoin
 
 import requests
 from bs4 import BeautifulSoup
 from pathvalidate import sanitize_filename
-
 
 logger = logging.getLogger(__name__)
 
@@ -18,23 +18,18 @@ def get_response(base_url, book_id):
     response = requests.get(url=book_url)
     response.raise_for_status()
     if response.history:
-        raise requests.exceptions.HTTPError(response.history)
+        raise requests.exceptions.HTTPError('Redirect. ', response.history)
     return response
 
 
 def fetch_text_url(base_url, soup):
     """
-    Возвращает тег для скачивания текста книги из тега '<a></a>'
-    (при наличии) или ответ None
+    Возвращает ссылку для скачивания текста книги (при наличии)
+    или возбуждает исключение AttributeError
     """
-    tag_href = [
-        tag.get('href')
-        for tag in soup.find('table', class_='d_book').find_all('a')
-        if tag.text == 'скачать txt'
-    ]
-    if tag_href:
-        return urljoin(base_url, tag_href[0])
-    return
+    tag_href = soup.find('table', class_='d_book')\
+        .find('a', string='скачать txt').get('href')
+    return urljoin(base_url, tag_href[0])
 
 
 def fetch_image_url_and_name(book_url, soup):
@@ -74,48 +69,58 @@ def parse_book_page(response, book_id):
     """
     soup = BeautifulSoup(response.text, 'lxml')
     text_url = fetch_text_url(response.url, soup)
-    if text_url:
-        image_url, image_name = fetch_image_url_and_name(response.url, soup)
-        title, author = fetch_title_and_author(soup)
-        genres = fetch_genres(soup)
-        book_name = sanitize_filename(f'{title}.txt')
-        comments = fetch_comments(soup)
-        book = {
-            'book_id': book_id, 'text_url': text_url, 'image_url': image_url,
-            'image_name': image_name, 'title': title, 'author': author,
-            'genres': genres, 'book_name': book_name, 'comments': comments
-        }
-        return book
-    return
+    image_url, image_name = fetch_image_url_and_name(response.url, soup)
+    title, author = fetch_title_and_author(soup)
+    genres = fetch_genres(soup)
+    book_name = sanitize_filename(f'{title}.txt')
+    comments = fetch_comments(soup)
+    book = {
+        'book_id': book_id, 'text_url': text_url, 'image_url': image_url,
+        'image_name': image_name, 'title': title, 'author': author,
+        'genres': genres, 'book_name': book_name, 'comments': comments
+    }
+    return book
 
 
 def download_content(content_url, file_name, folder='books/'):
     """Функция для скачивания файлов в заданную папку"""
     response = requests.get(url=content_url)
     response.raise_for_status()
+    if response.history:
+        raise requests.exceptions.HTTPError('Redierct: ', response.history)
+
     filepath = os.path.join(folder, file_name)
     with open(filepath, 'wb') as file:
         file.write(response.content)
+
     return
 
 
 def publish_books_to_console(books):
     """Выводит на экран список книг"""
-    print(f'\n  Всего получено {len(books)} книг.\n')
+    head_message = """
+    Всего получено %d книг.
+    """ % (len(books))
+    print(tw.dedent(head_message))
+
     for number, book in enumerate(books, start=1):
-        print(f"   Книга № {number}.\n   Название: {book['title']}.\n"
-              f"   Автор: {book['author']}")
+        book_message = """\
+        Книга № %d.
+        Название: %s
+        Автор: %s\
+        """ % (number, book['title'], book['author'])
+        print(tw.dedent(book_message))
         if book['comments']:
-            print('   Комментарии:')
+            print('Комментарии:')
             for comment in book['comments']:
-                print("    -", comment)
+                print("-", comment)
         print()
     return
 
 
 def main():
     logging.basicConfig(
-        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        format="[%(levelname)s] - %(asctime)s - %(name)s - %(message)s",
         level=logging.INFO
     )
 
@@ -141,22 +146,18 @@ def main():
         try:
             response = get_response(base_url, book_id)
             book = parse_book_page(response, book_id)
-            if book:
-                books.append(book)
-
-                download_content(book['text_url'], book['book_name'],
-                                 folder='books/')
-                download_content(book['image_url'], book['image_name'],
-                                 folder='images/')
-
-        except AttributeError as err:
-            logger.error(f"AttributeError: {err}")
-            pass
+            books.append(book)
+            download_content(book['text_url'], book['book_name'],
+                             folder='books/')
+            download_content(book['image_url'], book['image_name'],
+                             folder='images/')
+        except AttributeError as attr_err:
+            logger.error(f"BOOK ID: {book_id} -> AttributeError: {attr_err}")
+        except requests.exceptions.HTTPError as http_err:
+            logger.error(f"BOOK ID: {book_id} -> HTTPError: {http_err}")
         except requests.exceptions.ConnectionError as connection_err:
             logger.error(f"Lost HTTP connection: {connection_err}")
             time.sleep(10)
-        except requests.exceptions.HTTPError as http_err:
-            logger.error(f"BOOK ID: {book_id} -> HTTPError: {http_err}")
 
     publish_books_to_console(books)
 
