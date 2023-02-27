@@ -1,5 +1,5 @@
 import os
-import time
+import textwrap as tw
 from urllib.parse import urljoin
 
 import requests
