@@ -29,7 +29,7 @@ def fetch_text_url(base_url, soup):
     """
     tag_href = soup.find('table', class_='d_book')\
         .find('a', string='скачать txt').get('href')
-    return urljoin(base_url, tag_href[0])
+    return urljoin(base_url, tag_href)
 
 
 def fetch_image_url_and_name(book_url, soup):
