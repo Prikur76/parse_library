@@ -55,10 +55,10 @@ def main():
                 response = t.get_response(base_url, book_addition)
                 book = t.parse_book_page(response, book_id)
                 books.append(book)
-                download_content(book['text_url'], book['book_name'],
-                                 folder='books/')
-                download_content(book['image_url'], book['image_name'],
-                                 folder='images/')
+                t.download_content(book['text_url'], book['book_name'],
+                                   folder='books/')
+                t.download_content(book['image_url'], book['image_name'],
+                                   folder='images/')
             except AttributeError as attr_err:
                 logger.error(f"BOOK ID: {book_id} -> AttributeError: {attr_err}")
             except requests.exceptions.HTTPError as http_err:
