@@ -139,7 +139,7 @@ def download_books_to_file(books):
                 'comments': book['comments'],
                 'genres': book['genres']
             }
-            json.dump(book, json_file, ensure_ascii=False)
+            json.dump(book, json_file, ensure_ascii=False, indent=4)
     return
 
 
