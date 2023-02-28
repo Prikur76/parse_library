@@ -1,6 +1,8 @@
 import os
+import re
 import textwrap as tw
 from urllib.parse import urljoin
+import json
 
 import requests
 from bs4 import BeautifulSoup
@@ -82,7 +84,7 @@ def download_content(content_url, file_name, folder='books/'):
     response = requests.get(url=content_url)
     response.raise_for_status()
     if response.history:
-        raise requests.exceptions.HTTPError('Redierct: ', response.history)
+        raise requests.exceptions.HTTPError('Redirect: ', response.history)
 
     filepath = os.path.join(folder, file_name)
     with open(filepath, 'wb') as file:
@@ -110,3 +112,49 @@ def publish_books_to_console(books):
                 print("-", comment)
         print()
     return
+
+
+def download_books_to_file(books):
+    """Возвращает файл со списком книг в формате json"""
+    # changed_books = []
+    # for book in books:
+    #
+    #     changed_books.append(
+    #         {
+    #             'title': book['title'],
+    #             'author': book['author'],
+    #             'img_src': f"images/{book['image_name']}",
+    #             'book_path': f"books/{book['book_name']}",
+    #             'comments': book['comments'],
+    #             'genres': book['genres']
+    #         }
+    #     )
+    with open('books.json', 'w+', encoding='utf8') as json_file:
+        for book in books:
+            book = {
+                'title': book['title'],
+                'author': book['author'],
+                'img_src': f"images/{book['image_name']}",
+                'book_path': f"books/{book['book_name']}",
+                'comments': book['comments'],
+                'genres': book['genres']
+            }
+            json.dump(book, json_file, ensure_ascii=False)
+    return
+
+
+def fetch_pages_count(soup):
+    """Возвращает количество страниц"""
+    pages_count = int(soup.find_all('a', class_='npage')[-1].text)
+    return pages_count
+
+
+def fetch_books_ids(soup):
+    """Возвращает список номеров книг"""
+    books_ids = []
+    a_tags = soup.find('div', id='content')\
+        .find_all('a', title=re.compile('скачать'))
+    for tag in a_tags:
+        book_id = re.findall(r'(\d+)', tag.get('href'))[0]
+        books_ids.append(book_id)
+    return books_ids
