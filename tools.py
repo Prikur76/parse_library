@@ -9,13 +9,12 @@ from bs4 import BeautifulSoup
 from pathvalidate import sanitize_filename
 
 
-def get_response(base_url, addition):
+def get_response(target_url):
     """Возвращает ответ на запрос либо возбуждает исключение"""
-    target_url = urljoin(base_url, addition)
     response = requests.get(url=target_url)
     response.raise_for_status()
     if response.history:
-        raise requests.exceptions.HTTPError('Redirect. ', response.history)
+        raise requests.exceptions.HTTPError('Request failed with: ', response.history)
     return response
 
 
@@ -116,22 +115,9 @@ def publish_books_to_console(books):
 
 def download_books_to_file(books):
     """Возвращает файл со списком книг в формате json"""
-    # changed_books = []
-    # for book in books:
-    #
-    #     changed_books.append(
-    #         {
-    #             'title': book['title'],
-    #             'author': book['author'],
-    #             'img_src': f"images/{book['image_name']}",
-    #             'book_path': f"books/{book['book_name']}",
-    #             'comments': book['comments'],
-    #             'genres': book['genres']
-    #         }
-    #     )
     with open('books.json', 'w+', encoding='utf8') as json_file:
         for book in books:
-            book = {
+            new_description = {
                 'title': book['title'],
                 'author': book['author'],
                 'img_src': f"images/{book['image_name']}",
@@ -139,7 +125,8 @@ def download_books_to_file(books):
                 'comments': book['comments'],
                 'genres': book['genres']
             }
-            json.dump(book, json_file, ensure_ascii=False, indent=4)
+            json.dump(new_description, json_file,
+                      ensure_ascii=False, indent=4)
     return
 
 
@@ -149,7 +136,7 @@ def fetch_pages_count(soup):
     return pages_count
 
 
-def fetch_books_ids(soup):
+def fetch_books_ids_from_page(soup):
     """Возвращает список номеров книг"""
     books_ids = []
     a_tags = soup.find('div', id='content')\
