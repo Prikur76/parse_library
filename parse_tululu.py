@@ -1,13 +1,11 @@
 import argparse
 import logging
 import os
-import textwrap as tw
 import time
 from urllib.parse import urljoin
 
 import requests
-from bs4 import BeautifulSoup
-from pathvalidate import sanitize_filename
+
 import tools
 
 logger = logging.getLogger(__name__)
@@ -40,8 +38,8 @@ def main():
     books = []
     for book_id in range(start_id, end_id, 1):
         try:
-            book_addition = f'/b{book_id}/'
-            response = tools.get_response(base_url, book_addition)
+            book_url = urljoin(base_url, f'/b{book_id}/')
+            response = tools.get_response(book_url)
             book = tools.parse_book_page(response, book_id)
             books.append(book)
             # download_content(book['text_url'], book['book_name'],
