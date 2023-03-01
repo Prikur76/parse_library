@@ -1,8 +1,7 @@
 import logging
 import os
-import re
 import time
-import json
+from urllib.parse import urljoin
 
 import requests
 from bs4 import BeautifulSoup
@@ -12,15 +11,13 @@ import tools
 logger = logging.getLogger(__name__)
 
 
-def get_books_ids_from_pages(base_url, start_page=1, end_page=2):
-    """Возвращает список ID книг на выбранных страницах"""
-    books_ids = []
-    for page in range(start_page, end_page):
-        sci_fi_addition = f'/l55/{page}/'
-        response = tools.get_response(base_url, sci_fi_addition)
-        soup = BeautifulSoup(response.text, 'lxml')
-        books_ids.extend(tools.fetch_books_ids(soup))
-    return books_ids
+def collects_books_ids(page_url):
+    """Возвращает список ID книг на указанной странице"""
+    response = tools.get_response(page_url)
+    response.raise_for_status()
+    soup = BeautifulSoup(response.text, 'lxml')
+    return tools.fetch_books_ids_from_page(soup)
+
 
 
 def main():
@@ -35,40 +32,35 @@ def main():
     os.makedirs(image_path, exist_ok=True)
     base_url = 'https://tululu.org/'
 
-    # parser = argparse.ArgumentParser(
-    #     description='Скачивание книг из библиотеки  tululu.org'
-    # )
-    # parser.add_argument('--start_page', type=int, default=1,
-    #                     help='Ввести номер первой страницы')
-    # parser.add_argument('--end_page', type=int, default=None,
-    #                     help='Ввести номер последней страницы')
-    # args = parser.parse_args()
-    # start_id = args.start_page
-    # end_id = args.end_page
+    parser = argparse.ArgumentParser(
+        description='Скачивание книг из библиотеки  tululu.org'
+    )
+    parser.add_argument('--start_page', type=int, default=1,
+                        help='Ввести номер первой страницы')
+    parser.add_argument('--end_page', type=int, default=None,
+                        help='Ввести номер последней страницы')
+    args = parser.parse_args()
+    start = args.start_page
+    end = args.end_page + 1
 
-    try:
-        base_url = 'https://tululu.org/'
-        all_books_ids = get_books_ids_from_pages(base_url, start_page=1, end_page=4)
-        # sci_fi_addition = f'/l55/1/'
-        # response = tools.get_response(base_url, sci_fi_addition)
-        # soup = BeautifulSoup(response.text, 'lxml')
-        # pages_count = 4                  # tools.fetch_pages_count(soup)
-        # books_ids = tools.fetch_books_ids(soup)
-        # for page in range(2, pages_count+1, 1):
-        #     sci_fi_addition = f'/l55/{page}/'
-        #     response = tools.get_response(base_url, sci_fi_addition)
-        #     soup = BeautifulSoup(response.text, 'lxml')
-        #     books_ids.extend(tools.fetch_books_ids(soup))
+    base_url = 'https://tululu.org/'
 
-    except requests.exceptions.ConnectionError as connection_err:
-        logger.error(f"Lost HTTP connection: {connection_err}")
-        time.sleep(10)
+    books_ids = []
+    for page in range(start, end):
+        try:
+            page_url = urljoin(base_url, f'/l55/{page}/')
+            books_ids.append(collects_books_ids(page_url))
+        except requests.exceptions.HTTPError as http_err:
+            logger.error(f"Request failed with HTTPError: {http_err}")
+        except requests.exceptions.ConnectionError as connection_err:
+            logger.error(f"Lost HTTP connection: {connection_err}")
+            time.sleep(10)
 
     books = []
-    for book_id in all_books_ids:
+    for book_id in books_ids:
         try:
-            book_addition = f'/b{book_id}/'
-            response = tools.get_response(base_url, book_addition)
+            book_url = urljoin(base_url, f'/b{book_id}/')
+            response = tools.get_response(book_url)
             book = tools.parse_book_page(response, book_id)
             books.append(book)
             tools.download_content(book['text_url'], book['book_name'],
@@ -82,19 +74,12 @@ def main():
         except requests.exceptions.ConnectionError as connection_err:
             logger.error(f"Lost HTTP connection: {connection_err}")
             time.sleep(10)
-    # tools.publish_books_to_console(books)
+
+    tools.publish_books_to_console(books)
     tools.download_books_to_file(books)
 
     return
 
 
 if __name__ == '__main__':
-    # main()
-    print(type('books.json'))
-
-    # with open("books.json", "r") as my_file:
-    #     books_json = my_file.read()
-    #     print(type(books_json))
-    #
-    # read_books = json.loads(books_json)
-    # print(read_books)
+    main()
