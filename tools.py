@@ -78,7 +78,7 @@ def parse_book_page(response, book_id):
     return book
 
 
-def download_content(content_url, file_name, folder='books/'):
+def download_content(content_url, file_name, folder):
     """Функция для скачивания файлов в заданную папку"""
     response = requests.get(url=content_url)
     response.raise_for_status()
@@ -113,11 +113,12 @@ def publish_books_to_console(books):
     return
 
 
-def download_books_to_file(books):
+def download_books_to_file(books, folder_path):
     """Возвращает файл со списком книг в формате json"""
-    with open('books.json', 'w+', encoding='utf8') as json_file:
-        for book in books:
-            new_description = {
+    collected_books = []
+    for book in books:
+        collected_books.append(
+            {
                 'title': book['title'],
                 'author': book['author'],
                 'img_src': f"images/{book['image_name']}",
@@ -125,8 +126,11 @@ def download_books_to_file(books):
                 'comments': book['comments'],
                 'genres': book['genres']
             }
-            json.dump(new_description, json_file,
-                      ensure_ascii=False, indent=4)
+        )
+    filename = os.path.join(folder_path, 'books.json')
+    with open(filename, 'w+', encoding='utf8') as file:
+        json.dump(collected_books, file,
+                  ensure_ascii=False, indent=4)
     return
 
 
