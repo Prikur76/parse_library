@@ -38,18 +38,23 @@ def main():
     books = []
     for book_id in range(start_id, end_id, 1):
         try:
+
             book_url = urljoin(base_url, f'/b{book_id}/')
             response = tools.get_response(book_url)
-            book = tools.parse_book_page(response, book_id)
+            book = tools.parse_book_page(response)
             books.append(book)
-            # download_content(book['text_url'], book['book_name'],
-            #                  folder='books/')
-            # download_content(book['image_url'], book['image_name'],
-            #                  folder='images/')
-        except AttributeError as attr_err:
-            logger.error(f"BOOK ID: {book_id} -> AttributeError: {attr_err}")
+
+            tools.download_content(book['text_url'], book['book_name'],
+                                   folder='books/')
+            tools.download_content(book['image_url'], book['image_name'],
+                                   folder='images/')
+
+        except TypeError as type_err:
+            logger.error(f"BOOK: {book_url} -> TypeError: {type_err}")
+
         except requests.exceptions.HTTPError as http_err:
             logger.error(f"BOOK ID: {book_id} -> HTTPError: {http_err}")
+
         except requests.exceptions.ConnectionError as connection_err:
             logger.error(f"Lost HTTP connection: {connection_err}")
             time.sleep(10)
