@@ -1,8 +1,7 @@
+import json
 import os
-import re
 import textwrap as tw
 from urllib.parse import urljoin
-import json
 
 import requests
 from bs4 import BeautifulSoup
@@ -14,50 +13,52 @@ def get_response(target_url):
     response = requests.get(url=target_url)
     response.raise_for_status()
     if response.history:
-        raise requests.exceptions.HTTPError('Request failed with: ', response.history)
+        raise requests.exceptions.HTTPError('Request failed with: ',
+                                            response.history)
     return response
 
 
-def fetch_text_url(base_url, soup):
+def fetch_text_url(url, soup):
     """
     Возвращает ссылку для скачивания текста книги (при наличии)
-    или возбуждает исключение AttributeError
+    или возбуждает исключение TypeError
     """
-    tag_href = soup.find('table', class_='d_book')\
-        .find('a', string='скачать txt').get('href')
-    return urljoin(base_url, tag_href)
+    selector = 'table.d_book a[href*="/txt.php?id="]'
+    tag_href = soup.select_one(selector)['href']
+    return urljoin(url, tag_href)
 
 
-def fetch_image_url_and_name(book_url, soup):
+def fetch_image_url_and_name(url, soup):
     """Возвращает ссылку для скачивания изображения и имя файла"""
-    image = soup.find('div', class_='bookimage').find('img')
-    image_url = urljoin(book_url, image.get('src'))
-    image_name = image.get('src').split('/')[-1]
+    selector = 'div.bookimage img'
+    image = soup.select_one(selector)['src']
+    image_url = urljoin(url, image)
+    image_name = image_url.split('/')[-1]
     return image_url, image_name
 
 
 def fetch_title_and_author(soup):
     """Возвращает название книги и автора"""
-    title_tag = soup.find('h1').text
+    title_tag = soup.select_one('h1').text
     title, author = title_tag.split(' :: ')
     return title.strip(), author.strip()
 
 
 def fetch_genres(soup):
     """Возвращает жанр книги или пустой список"""
-    genres_tags = soup.find('span', class_='d_book').find_all('a')
+    genres_tags = soup.select('span.d_book a')
     genres = [genre.text for genre in genres_tags]
     return genres
 
 
 def fetch_comments(soup):
     """Возвращает список комментариев или пустой список"""
-    comments_tags = soup.find_all('div', class_='texts')
-    comments = [comment.find('span').text for comment in comments_tags]
+    comments_tags = soup.select('div.texts span')
+    comments = [comment.text for comment in comments_tags]
     return comments
 
 
-def parse_book_page(response, book_id):
+def parse_book_page(response):
     """
     Возвращает информацию о книге в виде словаря в случае,
     если есть ссылка для скачивания текст книги (text_url),
@@ -71,7 +72,7 @@ def parse_book_page(response, book_id):
     book_name = sanitize_filename(f'{title}.txt')
     comments = fetch_comments(soup)
     book = {
-        'book_id': book_id, 'text_url': text_url, 'image_url': image_url,
+        'book_url': response.url, 'text_url': text_url, 'image_url': image_url,
         'image_name': image_name, 'title': title, 'author': author,
         'genres': genres, 'book_name': book_name, 'comments': comments
     }
@@ -134,18 +135,21 @@ def download_books_to_file(books, folder_path):
     return
 
 
-def fetch_pages_count(soup):
-    """Возвращает количество страниц"""
-    pages_count = int(soup.find_all('a', class_='npage')[-1].text)
-    return pages_count
+def get_last_page_number():
+    """Возвращает номер последней страницы """
+    sci_fi_url = 'https://tululu.org/l55/'
+    response = get_response(sci_fi_url)
+    response.raise_for_status()
+    soup = BeautifulSoup(response.text, 'lxml')
+    last_page_number = int(soup.select('a.npage')[-1].text)
+    return last_page_number
 
 
-def fetch_books_ids_from_page(soup):
-    """Возвращает список номеров книг"""
-    books_ids = []
-    a_tags = soup.find('div', id='content')\
-        .find_all('a', title=re.compile('скачать'))
-    for tag in a_tags:
-        book_id = re.findall(r'(\d+)', tag.get('href'))[0]
-        books_ids.append(book_id)
-    return books_ids
+def fetch_books_urls_from_page(page_url):
+    """Возвращает список ID книг на указанной странице"""
+    response = get_response(page_url)
+    response.raise_for_status()
+    soup = BeautifulSoup(response.text, 'lxml')
+    a_tags = soup.select('div.bookimage > a')
+    page_books_urls = [urljoin(page_url, tag['href']) for tag in a_tags]
+    return page_books_urls
