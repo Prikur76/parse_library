@@ -7,6 +7,7 @@ from urllib.parse import urljoin
 import requests
 
 import tools
+import exceptions
 
 logger = logging.getLogger(__name__)
 
@@ -62,6 +63,9 @@ def main():
             page_books_urls = tools.fetch_books_urls_from_page(page_url)
             books_urls.extend(page_books_urls)
 
+        except exceptions.MyCustomError as my_err:
+            logger.error(f"PAGE: {page_url} -> MyCustomError: {my_err}")
+
         except requests.exceptions.HTTPError as http_err:
             logger.error(f"Request failed with HTTPError: {http_err}")
 
@@ -82,8 +86,8 @@ def main():
                 tools.download_content(book['image_url'], book['image_name'],
                                        folder=images_path)
             print(book_url)
-        except TypeError as type_err:
-            logger.error(f"BOOK: {book_url} -> TypeError: {type_err}")
+        except exceptions.MyCustomError as my_err:
+            logger.error(f"BOOK: {book_url} -> MyCustomError: {my_err}")
         except requests.exceptions.HTTPError as http_err:
             logger.error(f"BOOK: {book_url} -> HTTPError: {http_err}")
         except requests.exceptions.ConnectionError as connection_err:
@@ -92,7 +96,6 @@ def main():
     #
     tools.publish_books_to_console(books)
     tools.download_books_to_file(books, books_file_path)
-    return
 
 
 if __name__ == '__main__':
