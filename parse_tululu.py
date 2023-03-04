@@ -7,6 +7,7 @@ from urllib.parse import urljoin
 import requests
 
 import tools
+import exceptions
 
 logger = logging.getLogger(__name__)
 
@@ -49,8 +50,8 @@ def main():
             tools.download_content(book['image_url'], book['image_name'],
                                    folder='images/')
 
-        except TypeError as type_err:
-            logger.error(f"BOOK: {book_url} -> TypeError: {type_err}")
+        except exceptions.MyCustomError as my_err:
+            logger.error(f"BOOK: {book_url} -> MyCustomError: {my_err}")
 
         except requests.exceptions.HTTPError as http_err:
             logger.error(f"BOOK ID: {book_id} -> HTTPError: {http_err}")
