@@ -7,6 +7,8 @@ import requests
 from bs4 import BeautifulSoup
 from pathvalidate import sanitize_filename
 
+import exceptions
+
 
 def get_response(target_url):
     """Возвращает ответ на запрос либо возбуждает исключение"""
@@ -23,16 +25,18 @@ def fetch_text_url(url, soup):
     Возвращает ссылку для скачивания текста книги (при наличии)
     или возбуждает исключение TypeError
     """
-    selector = 'table.d_book a[href*="/txt.php?id="]'
-    tag_href = soup.select_one(selector)['href']
-    return urljoin(url, tag_href)
+    tag_href = soup.select_one('table.d_book a[href*="/txt.php?id="]')
+    if tag_href is None:
+        raise exceptions.MyCustomError('No txt tag')
+    return urljoin(url, tag_href.get('href'))
 
 
 def fetch_image_url_and_name(url, soup):
     """Возвращает ссылку для скачивания изображения и имя файла"""
-    selector = 'div.bookimage img'
-    image = soup.select_one(selector)['src']
-    image_url = urljoin(url, image)
+    image = soup.select_one('div.bookimage img')
+    if image is None:
+        raise exceptions.MyCustomError('No image tag')
+    image_url = urljoin(url, image.get('src'))
     image_name = image_url.split('/')[-1]
     return image_url, image_name
 
@@ -40,6 +44,8 @@ def fetch_image_url_and_name(url, soup):
 def fetch_title_and_author(soup):
     """Возвращает название книги и автора"""
     title_tag = soup.select_one('h1').text
+    if title_tag is None:
+        raise exceptions.MyCustomError('No title text')
     title, author = title_tag.split(' :: ')
     return title.strip(), author.strip()
 
@@ -47,6 +53,8 @@ def fetch_title_and_author(soup):
 def fetch_genres(soup):
     """Возвращает жанр книги или пустой список"""
     genres_tags = soup.select('span.d_book a')
+    if genres_tags is None:
+        raise exceptions.MyCustomError('No genres tag')
     genres = [genre.text for genre in genres_tags]
     return genres
 
@@ -54,6 +62,8 @@ def fetch_genres(soup):
 def fetch_comments(soup):
     """Возвращает список комментариев или пустой список"""
     comments_tags = soup.select('div.texts span')
+    if comments_tags is None:
+        raise exceptions.MyCustomError('No comments tag')
     comments = [comment.text for comment in comments_tags]
     return comments
 
@@ -89,7 +99,6 @@ def download_content(content_url, file_name, folder):
     filepath = os.path.join(folder, file_name)
     with open(filepath, 'wb') as file:
         file.write(response.content)
-    return
 
 
 def publish_books_to_console(books):
@@ -111,7 +120,6 @@ def publish_books_to_console(books):
             for comment in book['comments']:
                 print("-", comment)
         print()
-    return
 
 
 def download_books_to_file(books, folder_path):
@@ -132,24 +140,25 @@ def download_books_to_file(books, folder_path):
     with open(filename, 'w+', encoding='utf8') as file:
         json.dump(collected_books, file,
                   ensure_ascii=False, indent=4)
-    return
 
 
 def get_last_page_number():
     """Возвращает номер последней страницы """
     sci_fi_url = 'https://tululu.org/l55/'
     response = get_response(sci_fi_url)
-    response.raise_for_status()
     soup = BeautifulSoup(response.text, 'lxml')
     last_page_number = int(soup.select('a.npage')[-1].text)
+    if last_page_number is None:
+        raise exceptions.MyCustomError("No 'last page' tag")
     return last_page_number
 
 
 def fetch_books_urls_from_page(page_url):
     """Возвращает список ID книг на указанной странице"""
     response = get_response(page_url)
-    response.raise_for_status()
     soup = BeautifulSoup(response.text, 'lxml')
     a_tags = soup.select('div.bookimage > a')
+    if a_tags is None:
+        raise exceptions.MyCustomError('No book url tag')
     page_books_urls = [urljoin(page_url, tag['href']) for tag in a_tags]
     return page_books_urls
