@@ -31,7 +31,6 @@ def fetch_text_url(url, soup):
     raise exceptions.NoTagError('No txt tag')
 
 
-
 def fetch_image_url_and_name(url, soup):
     """Возвращает ссылку для скачивания изображения и имя файла"""
     image = soup.select_one('div.bookimage img')
@@ -41,6 +40,7 @@ def fetch_image_url_and_name(url, soup):
         return image_url, image_name
     raise exceptions.NoTagError('No image tag')
 
+
 def fetch_title_and_author(soup):
     """Возвращает название книги и автора"""
     title_tag = soup.select_one('h1').text
@@ -48,7 +48,6 @@ def fetch_title_and_author(soup):
         title, author = title_tag.split(' :: ')
         return title.strip(), author.strip()
     raise exceptions.NoTagError('No title text')
-
 
 
 def fetch_genres(soup):
@@ -60,7 +59,6 @@ def fetch_genres(soup):
     raise exceptions.NoTagError('No genres tag')
 
 
-
 def fetch_comments(soup):
     """Возвращает список комментариев или пустой список"""
     comments_tags = soup.select('div.texts span')
@@ -68,7 +66,6 @@ def fetch_comments(soup):
         comments = [comment.text for comment in comments_tags]
         return comments
     raise exceptions.NoTagError('No comments tag')
-
 
 
 def parse_book_page(response):
@@ -156,7 +153,6 @@ def get_last_page_number():
     raise exceptions.NoTagError("No 'last page' tag")
 
 
-
 def fetch_books_urls_from_page(page_url):
     """Возвращает список ID книг на указанной странице"""
     response = get_response(page_url)
@@ -166,4 +162,3 @@ def fetch_books_urls_from_page(page_url):
         page_books_urls = [urljoin(page_url, tag['href']) for tag in a_tags]
         return page_books_urls
     raise exceptions.NoTagError('No book url tag')
-
