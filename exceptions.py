@@ -1,6 +1,6 @@
 """Кастомные исключения"""
 
 
-class MyCustomError(TypeError):
+class NoTagError(TypeError):
     """На странице нет такого тега"""
     pass
