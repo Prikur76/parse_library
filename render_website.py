@@ -15,6 +15,8 @@ def on_reload():
     with open("books.json", encoding='utf-8', errors='ignore') as file:
         deserialized_file = json.load(file, strict=False)
         pages = list(chunked(deserialized_file, 20))
+        pages_count = len(pages)
+
 
     dir_path = os.path.dirname(os.path.realpath(__file__))
     pages_path = os.path.join(dir_path, 'pages')
@@ -27,13 +29,10 @@ def on_reload():
             {
                 'number': page_number,
                 'content': page,
-                'path': index_html_path
+                'path': index_html_path,
+                'count': pages_count
             }
         ]
-        # for book in books_pages:
-        #     print(book['number'])
-        #     for content in book['content']:
-        #         print(content['title'])
         rendered_page = template.render(books_pages=books_pages)
         with open(index_html_path, 'w', encoding="utf8") as index_html:
             index_html.write(rendered_page)
