@@ -1,8 +1,9 @@
 import json
-from more_itertools import chunked
+import os
+
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 from livereload import Server
-
+from more_itertools import chunked
 
 
 def on_reload():
@@ -13,12 +14,29 @@ def on_reload():
     )
     with open("books.json", encoding='utf-8', errors='ignore') as file:
         deserialized_file = json.load(file, strict=False)
-        chunks = list(chunked(deserialized_file, 2))
+        pages = list(chunked(deserialized_file, 20))
+
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    pages_path = os.path.join(dir_path, 'pages')
+    os.makedirs(pages_path, exist_ok=True)
 
     template = env.get_template('template.html')
-    rendered_page = template.render(chunks=chunks)
-    with open('index.html', 'w', encoding="utf8") as index_html:
-        index_html.write(rendered_page)
+    for page_number, page in enumerate(pages, start=1):
+        index_html_path = f'{pages_path}/index{page_number}.html'
+        books_pages = [
+            {
+                'number': page_number,
+                'content': page,
+                'path': index_html_path
+            }
+        ]
+        # for book in books_pages:
+        #     print(book['number'])
+        #     for content in book['content']:
+        #         print(content['title'])
+        rendered_page = template.render(books_pages=books_pages)
+        with open(index_html_path, 'w', encoding="utf8") as index_html:
+            index_html.write(rendered_page)
 
 
 def rebuild():
