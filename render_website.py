@@ -17,7 +17,6 @@ def on_reload():
         pages = list(chunked(deserialized_file, 20))
         pages_count = len(pages)
 
-
     dir_path = os.path.dirname(os.path.realpath(__file__))
     pages_path = os.path.join(dir_path, 'pages')
     os.makedirs(pages_path, exist_ok=True)
@@ -46,4 +45,4 @@ def rebuild():
 rebuild()
 server = Server()
 server.watch('template.html', rebuild)
-server.serve(root='.')
+server.serve(root='.', default_filename='./pages/index1.html')
