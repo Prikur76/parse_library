@@ -139,7 +139,7 @@ $ python parse_tululu_category.py --start_page 700
 -> cкачает все книги, находящиеся на страницах 700, 701 (последняя).
 
 Пример сайта:  [https://prikur76.github.io/parse_library/index.html](https://prikur76.github.io/parse_library/index.html).
-
+![image](https://github.com/Prikur76/parse_library/blob/main/screenshot_parse_tululu.png)
 ### Цель проекта
 
 Код написан в образовательных целях на онлайн-курсе для веб-разработчиков [dvmn.org](https://dvmn.org).
