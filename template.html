@@ -17,7 +17,7 @@
       {% for page in books_pages %}
         <div class="row justify-content-center">
           <nav aria-label="Page navigation example">
-            <ul class="pagination pagination-lg">
+            <ul class="pagination pagination-md">
               {% if page.number > 2 %}
                 <li class="page-item"><a class="page-link" href="../pages/index{{page.number-2}}.html">Назад</a></li>
                 <li class="page-item"><a class="page-link" href="../pages/index{{page.number-1}}.html">{{page.number-1}}</a></li>
@@ -64,8 +64,13 @@
         {% endfor %}
         </div>
       {% endfor %}
+      <footer class="blog-footer text-center">
+        <p>Template site built for <a href="https://dvmn.org/" target="_blank" rel="noopener noreferrer">DEVMAN</a></p>
+        <p>
+          <a href="#">Back to top</a>
+        </p>
+      </footer>
     </div>
-
     <!-- Optional JavaScript -->
     <!-- jQuery first, then Popper.js, then Bootstrap JS -->
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
