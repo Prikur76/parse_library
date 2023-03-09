@@ -51,7 +51,7 @@ def main():
                                    folder='images/')
 
         except exceptions.NoTagError as my_err:
-            logger.error(f"BOOK: {book_url} -> NoTagError: {my_err}")
+            logger.error(f"BOOK: {book_id} -> NoTagError: {my_err}")
 
         except requests.exceptions.HTTPError as http_err:
             logger.error(f"BOOK ID: {book_id} -> HTTPError: {http_err}")
