@@ -61,8 +61,8 @@ def fetch_genres(soup):
 
 def fetch_comments(soup):
     """Возвращает список комментариев или пустой список"""
-    comments_tags = soup.select('div.texts span')
     comments = []
+    comments_tags = soup.select('div.texts span')
     if comments_tags:
         comments = [comment.text for comment in comments_tags]
     return comments
