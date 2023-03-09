@@ -57,13 +57,14 @@ def main():
 
     books_urls = []
     for page in range(start, end, 1):
-        page_url = urljoin(base_url, f'/l55/{page}/')
         try:
+            print(page)
+            page_url = urljoin(base_url, f'/l55/{page}/')
             page_books_urls = tools.fetch_books_urls_from_page(page_url)
             books_urls.extend(page_books_urls)
 
         except exceptions.NoTagError as my_err:
-            logger.error(f"PAGE: {page_url} -> NoTagError: {my_err}")
+            logger.error(f"PAGE: {page} -> NoTagError: {my_err}")
 
         except requests.exceptions.HTTPError as http_err:
             logger.error(f"Request failed with HTTPError: {http_err}")
