@@ -57,9 +57,8 @@ def main():
 
     books_urls = []
     for page in range(start, end, 1):
+        page_url = urljoin(base_url, f'/l55/{page}/')
         try:
-
-            page_url = urljoin(base_url, f'/l55/{page}/')
             page_books_urls = tools.fetch_books_urls_from_page(page_url)
             books_urls.extend(page_books_urls)
 
@@ -93,7 +92,6 @@ def main():
         except requests.exceptions.ConnectionError as connection_err:
             logger.error(f"Lost HTTP connection: {connection_err}")
             time.sleep(10)
-    #
     tools.publish_books_to_console(books)
     tools.download_books_to_file(books, books_file_path)
 
