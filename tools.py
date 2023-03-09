@@ -52,20 +52,20 @@ def fetch_title_and_author(soup):
 
 def fetch_genres(soup):
     """Возвращает жанр книги или пустой список"""
+    genres = []
     genres_tags = soup.select('span.d_book a')
     if genres_tags:
         genres = [genre.text for genre in genres_tags]
-        return genres
-    raise exceptions.NoTagError('No genres tag')
+    return genres
 
 
 def fetch_comments(soup):
     """Возвращает список комментариев или пустой список"""
     comments_tags = soup.select('div.texts span')
+    comments = []
     if comments_tags:
         comments = [comment.text for comment in comments_tags]
-        return comments
-    raise exceptions.NoTagError('No comments tag')
+    return comments
 
 
 def parse_book_page(response):
