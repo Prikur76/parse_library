@@ -7,7 +7,7 @@ from more_itertools import chunked
 
 
 def on_reload():
-    """ """
+    """Возвращает папку pages с файлами html"""
     env = Environment(
         loader=FileSystemLoader('.'),
         autoescape=select_autoescape(['html', 'xml'])
