@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 def main():
     logging.basicConfig(
-        format="[%(levelname)s] - %(asctime)s - %(name)s - %(message)s",
+        format='[%(levelname)s] - %(asctime)s - %(name)s - %(message)s',
         level=logging.INFO
     )
     dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -63,13 +63,13 @@ def main():
             books_urls.extend(page_books_urls)
 
         except exceptions.NoTagError as my_err:
-            logger.error(f"PAGE: {page_url} -> NoTagError: {my_err}")
+            logger.error(f'PAGE: {page_url} -> NoTagError: {my_err}')
 
         except requests.exceptions.HTTPError as http_err:
-            logger.error(f"Request failed with HTTPError: {http_err}")
+            logger.error(f'Request failed with HTTPError: {http_err}')
 
         except requests.exceptions.ConnectionError as connection_err:
-            logger.error(f"Lost HTTP connection: {connection_err}")
+            logger.error(f'Lost HTTP connection: {connection_err}')
             time.sleep(10)
 
     books = []
@@ -86,11 +86,11 @@ def main():
                                        folder=images_path)
             print(book_url)
         except exceptions.NoTagError as my_err:
-            logger.error(f"BOOK: {book_url} -> NoTagError: {my_err}")
+            logger.error(f'BOOK: {book_url} -> NoTagError: {my_err}')
         except requests.exceptions.HTTPError as http_err:
-            logger.error(f"BOOK: {book_url} -> HTTPError: {http_err}")
+            logger.error(f'BOOK: {book_url} -> HTTPError: {http_err}')
         except requests.exceptions.ConnectionError as connection_err:
-            logger.error(f"Lost HTTP connection: {connection_err}")
+            logger.error(f'Lost HTTP connection: {connection_err}')
             time.sleep(10)
     tools.publish_books_to_console(books)
     tools.download_books_to_file(books, books_file_path)
