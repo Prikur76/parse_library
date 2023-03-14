@@ -6,8 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
     <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-    <link rel="icon" href="../favicon.ico" type="image/x-con"><!-- 32×32 -->
+    <link rel="stylesheet" href="../static/bootstrap/bootstrap.min.css">
+    <link rel="icon" href="../static/favicon.ico" type="image/x-con"><!-- 32×32 -->
     <title>Библиотека</title>
   </head>
   <body>
@@ -19,23 +19,23 @@
           <nav aria-label="Page navigation example">
             <ul class="pagination pagination-md">
               {% if page.number > 2 %}
-                <li class="page-item"><a class="page-link" href="../pages/index{{page.number-2}}.html">Назад</a></li>
-                <li class="page-item"><a class="page-link" href="../pages/index{{page.number-1}}.html">{{page.number-1}}</a></li>
+                <li class="page-item"><a class="page-link" href="index{{page.number-2}}.html">Назад</a></li>
+                <li class="page-item"><a class="page-link" href="index{{page.number-1}}.html">{{page.number-1}}</a></li>
               {% elif page.number == 2 %}
                 <li class="page-item disabled"><a class="page-link" href="#">Назад</a></li>
-                <li class="page-item"><a class="page-link" href="../pages/index{{page.number-1}}.html">{{page.number-1}}</a></li>
+                <li class="page-item"><a class="page-link" href="index{{page.number-1}}.html">{{page.number-1}}</a></li>
               {% else %}
                 <li class="page-item disabled"><a class="page-link" href="#">Назад</a></li>
               {% endif %}
               <li class="page-item active"  aria-current="page">
-                <a class="page-link" href="../pages/index{{page.number}}.html">{{page.number}}<span class="sr-only">(current)</span></a>
+                <a class="page-link" href="index{{page.number}}.html">{{page.number}}<span class="sr-only">(current)</span></a>
               </li>
               {% if page.number < page.count - 1 %}
-                <li class="page-item"><a class="page-link" href="../pages/index{{page.number+1}}.html">{{page.number+1}}</a></li>
-                <li class="page-item"><a class="page-link" href="../pages/index{{page.number+2}}.html">Вперёд</a></li>
+                <li class="page-item"><a class="page-link" href="index{{page.number+1}}.html">{{page.number+1}}</a></li>
+                <li class="page-item"><a class="page-link" href="index{{page.number+2}}.html">Вперёд</a></li>
               {% elif page.number == page.count - 1 %}
-                <li class="page-item"><a class="page-link" href="../pages/index{{page.number+1}}.html">{{page.number+1}}</a></li>
-                <li class="page-item disabled"><a class="page-link" href="../pages/index{{page.number+2}}.html">Вперёд</a></li>
+                <li class="page-item"><a class="page-link" href="index{{page.number+1}}.html">{{page.number+1}}</a></li>
+                <li class="page-item disabled"><a class="page-link" href="index{{page.number+2}}.html">Вперёд</a></li>
               {% else %}
                 <li class="page-item disabled"><a class="page-link" href="#">Вперёд</a></li>
               {% endif %}
@@ -47,7 +47,7 @@
           <div class="card mx-auto my-2 my-sm-3 my-lg-4 p-3 col-6 shadow bg-body rounded" style="max-width: 540px; ">
             <div class="row no-gutters">
               <div class="col-md-4">
-                <img src="./../{{book.img_src|urlencode}}" class="card-img" alt="{{book.title}}">
+                <img src="../media/{{book.img_src|urlencode}}" class="card-img" alt="{{book.title}}">
               </div>
               <div class="col-md-8">
                 <div class="card-body">
@@ -56,7 +56,7 @@
                   {% for genre in book.genres %}
                     <h6><span class="badge badge-secondary">{{genre}}</span></h6>
                   {% endfor %}
-                  <a href="./../{{book.book_path|urlencode}}" target="_blank" rel="noopener noreferrer">Прочитать</a>
+                  <a href="../media/{{book.book_path|urlencode}}" target="_blank" rel="noopener noreferrer">Прочитать</a>
                 </div>
               </div>
             </div>
@@ -73,15 +73,7 @@
       </footer>
     </div>
     <!-- Optional JavaScript -->
-    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
-    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
-            integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
-            crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
-            integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
-            crossorigin="anonymous"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
-            integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
-            crossorigin="anonymous"></script>
+    <script src="../static/bootstrap/jquery-3.6.4.min.js"></script>
+    <script src="../static/bootstrap/bootstrap.min.js"></script>
   </body>
 </html>
