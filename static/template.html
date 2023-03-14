@@ -27,11 +27,13 @@
                 <li class="page-item"><a class="page-link" href="index{{ page.number-1 }}.html">Назад</a></li>
               {% endif %}
 
-              {% for number in range(page.count+1)[1:] %}
-                {% if number == page.number %}
-                  <li class="page-item active" aria-current="page"><a class="page-link" href="index{{ number }}.html">{{number}}</a></li>
+              {% for html_number in range(page.count+1)[1:] %}
+                {% if html_number == page.number %}
+                  <li class="page-item active" aria-current="page">
+                    <a class="page-link" href="index{{ html_number }}.html">{{ html_number }}</a>
+                  </li>
                 {% else %}
-                  <li class="page-item"><a class="page-link" href="index{{ number }}.html">{{number}}</a></li>
+                  <li class="page-item"><a class="page-link" href="index{{ html_number }}.html">{{ html_number }}</a></li>
                 {% endif %}
               {% endfor %}
 
