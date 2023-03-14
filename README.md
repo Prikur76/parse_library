@@ -149,8 +149,8 @@ Site rebuilt
 [I 230310 00:21:39 handlers:62] Start watching changes
 [I 230310 00:21:39 handlers:64] Start detecting changes
 ```
-- при необходимости внесите изменения в [шаблон](template.html).
-- запустите файл [index.html](index.html) и пользуйтесь собственной электронной библиотекой оффлайн!
+- при необходимости внесите изменения в [шаблон](static/template.html).
+- запустите файл [index.html](html_pages/index.html) и пользуйтесь собственной электронной библиотекой оффлайн!
 
 Пример сайта:  [https://prikur76.github.io/parse_library/index.html](https://prikur76.github.io/parse_library/index.html)
 
