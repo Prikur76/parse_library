@@ -51,13 +51,13 @@ def main():
                                    folder='images/')
 
         except exceptions.NoTagError as my_err:
-            logger.error(f"BOOK: {book_id} -> NoTagError: {my_err}")
+            logger.error(f'BOOK: {book_id} -> NoTagError: {my_err}')
 
         except requests.exceptions.HTTPError as http_err:
-            logger.error(f"BOOK ID: {book_id} -> HTTPError: {http_err}")
+            logger.error(f'BOOK ID: {book_id} -> HTTPError: {http_err}')
 
         except requests.exceptions.ConnectionError as connection_err:
-            logger.error(f"Lost HTTP connection: {connection_err}")
+            logger.error(f'Lost HTTP connection: {connection_err}')
             time.sleep(10)
 
     tools.publish_books_to_console(books)
