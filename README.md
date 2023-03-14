@@ -92,7 +92,7 @@ $ python parse_tululu.py 6 10
     - Interesno.
 ```
 
-2. Соберём библиотеку из книг категории "научная фантастика", по выбранным страницам сайта [tululu.org](https://tululu.org/l55/).
+2. Собираем библиотеку из книг категории "научная фантастика", по выбранным страницам сайта [tululu.org](https://tululu.org/l55/).
 - в виртуальном окружении запускаем файл **`parse_tululu_category.py`**:
 ```bash
 $ python parse_tululu_category.py -h
