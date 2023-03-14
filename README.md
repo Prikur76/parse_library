@@ -142,19 +142,31 @@ $ python parse_tululu_category.py --start_page 700
 ```bash
 $ python render_website.py
 ```
+или 
+```bash
+$ python render_website.py -bs /путь/к/файлу/<имя файла>.json
+```
+где **`-bs`** (**`--books_source`**) - опциональный аргумент для пути к файлу с описанием книг 
+(по умолчанию - 'books.json') 
+
 - проверьте правильность вывода макета сайта:
 ```bash
-Site rebuilt
 [I 230310 00:21:39 server:335] Serving on http://127.0.0.1:5500
 [I 230310 00:21:39 handlers:62] Start watching changes
 [I 230310 00:21:39 handlers:64] Start detecting changes
 ```
 - при необходимости внесите изменения в [шаблон](static/template.html).
-- запустите файл [index.html](html_pages/index.html) и пользуйтесь собственной электронной библиотекой оффлайн!
+- запустите файл [index.html](index.html) и пользуйтесь собственной электронной библиотекой. 
+
+3. Для запуска библиотеки **оффлайн** выполните следующие действия:
+- создайте на компьютере отдельную папку под библиотеку; 
+- скачайте из репозитория и сохраните в данной папке директории [html_pages](html_pages), [media](media), 
+[static](static), а также файл [index.html](index.html);
+- запустите файл [index.html](index.html) и пользуйтесь собственной электронной библиотекой.
 
 Пример сайта:  [https://prikur76.github.io/parse_library/index.html](https://prikur76.github.io/parse_library/index.html)
 
-![screenshot](screenshot_parse_tululu.png)
+![screenshot](https://i.paste.pics/ME7GM.png)
 
 ### Цель проекта
 
