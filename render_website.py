@@ -26,7 +26,7 @@ def on_reload(books_source='books.json'):
     pages_path = os.path.join(dir_path, 'html_pages')
     os.makedirs(pages_path, exist_ok=True)
 
-    template = env.get_template('static/template.html')
+    template = env.get_template('templates/template.html')
     for page_number, page in enumerate(html_pages, start=1):
         index_html_path = f'{pages_path}/index{page_number}.html'
         books_pages = [
@@ -56,7 +56,7 @@ def main():
     on_reload(books_source)
 
     server = Server()
-    server.watch('../static/template.html', on_reload)
+    server.watch('../templates/template.html', on_reload)
     server.serve(root='.', default_filename='index.html')
 
 
