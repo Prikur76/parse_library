@@ -8,7 +8,7 @@ from more_itertools import chunked
 
 
 def on_reload(books_source='books.json'):
-    """Возвращает папку html_pages с файлами html"""
+    """Возвращает папку chunks с файлами html"""
     env = Environment(
         loader=FileSystemLoader('.'),
         autoescape=select_autoescape(['html', 'xml'])
@@ -16,18 +16,18 @@ def on_reload(books_source='books.json'):
     with open(books_source, encoding='utf-8', errors='ignore') as file:
         books_descriptions = json.load(file, strict=False)
 
-    books_count_on_page = 20
-    html_pages = list(chunked(books_descriptions,
-                              books_count_on_page))
+    cards_count_on_page = 20
+    chunks = list(chunked(books_descriptions,
+                          cards_count_on_page))
 
-    pages_count = len(html_pages)
+    pages_count = len(chunks)
 
     dir_path = os.path.dirname(os.path.realpath(__file__))
     pages_path = os.path.join(dir_path, 'html_pages')
     os.makedirs(pages_path, exist_ok=True)
 
     template = env.get_template('templates/template.html')
-    for page_number, page in enumerate(html_pages, start=1):
+    for page_number, page in enumerate(chunks, start=1):
         index_html_path = f'{pages_path}/index{page_number}.html'
         books_pages = [
             {
@@ -38,7 +38,7 @@ def on_reload(books_source='books.json'):
             }
         ]
         rendered_page = template.render(books_pages=books_pages)
-        with open(index_html_path, 'w', encoding="utf8") as index_html:
+        with open(index_html_path, 'w', encoding='utf8') as index_html:
             index_html.write(rendered_page)
 
 

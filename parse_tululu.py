@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 def main():
     logging.basicConfig(
-        format="[%(levelname)s] - %(asctime)s - %(name)s - %(message)s",
+        format='[%(levelname)s] - %(asctime)s - %(name)s - %(message)s',
         level=logging.INFO
     )
 

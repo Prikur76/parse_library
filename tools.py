@@ -118,7 +118,7 @@ def publish_books_to_console(books):
         if book['comments']:
             print('Комментарии:')
             for comment in book['comments']:
-                print("-", comment)
+                print('-', comment)
         print()
 
 
