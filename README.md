@@ -155,7 +155,7 @@ $ python render_website.py -bs /путь/к/файлу/<имя файла>.json
 [I 230310 00:21:39 handlers:62] Start watching changes
 [I 230310 00:21:39 handlers:64] Start detecting changes
 ```
-- при необходимости внесите изменения в [шаблон](static/template.html).
+- при необходимости внесите изменения в [шаблон](templates/template.html).
 - запустите файл [index.html](index.html) и пользуйтесь собственной электронной библиотекой. 
 
 3. Для запуска библиотеки **оффлайн** выполните следующие действия:
