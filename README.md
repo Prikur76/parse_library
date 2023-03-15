@@ -155,6 +155,7 @@ $ python render_website.py -bs /путь/к/файлу/<имя файла>.json
 [I 230310 00:21:39 handlers:62] Start watching changes
 [I 230310 00:21:39 handlers:64] Start detecting changes
 ```
+- перейдите по ссылке [http://127.0.0.1:5500](http://127.0.0.1:5500) и проверьте запуск веб-сервера онлайн-библиотеки.
 - при необходимости внесите изменения в [шаблон](templates/template.html).
 - запустите файл [index.html](index.html) и пользуйтесь собственной электронной библиотекой. 
 
